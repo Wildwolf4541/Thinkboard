@@ -7,48 +7,38 @@ import notesRoutes from "./routes/notesRoutes.js";
 import { connectDB } from "./config/db.js";
 
 dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-// ======================
-// MIDDLEWARE
-// ======================
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// middleware
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: "http://localhost:5173",
+    })
+  );
+}
+app.use(express.json()); // this middleware will parse JSON bodies: req.body
+// our simple custom middleware
+// app.use((req, res, next) => {
+//   console.log(`Req method is ${req.method} & Req URL is ${req.url}`);
+//   next();
+// });
 
-// CORS — Allow all origins (safe since frontend is served by same server in prod)
-app.use(
-  cors({
-    origin: true, // reflect request origin
-    credentials: true,
-  })
-);
-
-// ======================
-// API ROUTES FIRST
-// ======================
 app.use("/api/notes", notesRoutes);
 
-// ======================
-// FRONTEND (PROD ONLY)
-// ======================
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  // Express 5 compatible wildcard route
-  app.get("/:path(*)", (req, res) => {
-    res.sendFile(
-      path.join(__dirname, "../frontend", "dist", "index.html")
-    );
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
 }
 
-// ======================
-// START SERVER
-// ======================
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log("Server is running on Port:", PORT);
+    console.log("Server started on PORT:", PORT);
   });
 });
