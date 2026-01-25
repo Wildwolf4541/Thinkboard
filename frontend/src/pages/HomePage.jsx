@@ -16,15 +16,9 @@ const HomePage = () => {
         const res = await api.get("/notes");
         console.log(res.data);
         setNotes(res.data);
-        setIsRateLimited(false);
       } catch (error) {
         console.log("Error fetching notes");
-        console.log(error.response);
-        if (error.response?.status === 429) {
-          setIsRateLimited(true);
-        } else {
-          toast.error("Failed to load notes");
-        }
+        toast.error("Failed to fetch notes. Please try again.");
       } finally {
         setLoading(false);
       }
