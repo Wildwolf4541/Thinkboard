@@ -46,3 +46,5 @@ connectDB().then(() => {
     console.log("Server started on PORT:", PORT);
   });
 });
+
+// Serive live at https://thinkboard-106w.onrender.com/
