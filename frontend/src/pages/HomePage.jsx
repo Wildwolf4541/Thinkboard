@@ -5,15 +5,20 @@ import api from "../lib/axios";
 import toast from "react-hot-toast";
 import NoteCard from "../components/NoteCard";
 import NotesNotFound from "../components/NotesNotFound";
-
+import { useAuthContext } from "../hooks/useAuthContext";
 const HomePage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const {user}= useAuthContext();
 
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const res = await api.get("/notes");
+        const res = await api.get("/notes",{
+          headers: {
+            "Authorization": `Bearer ${user.token}`
+          }
+        });
         console.log(res.data);
         setNotes(res.data);
       } catch (error) {
@@ -23,14 +28,14 @@ const HomePage = () => {
         setLoading(false);
       }
     };
-
-    fetchNotes();
-  }, []);
+    if(user){
+      fetchNotes();
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen">
       <Navbar />
-
 
       <div className="max-w-7xl mx-auto p-4 mt-6">
         {loading && <div className="text-center text-primary py-10">Loading notes...</div>}

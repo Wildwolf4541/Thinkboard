@@ -1,22 +1,35 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { PenSquareIcon, Trash2Icon } from "lucide-react";
 import { formatDate } from "../lib/utils.js";
 import api from "../lib/axios.js";
 import toast from "react-hot-toast";
+import { useAuthContext } from "../hooks/useAuthContext.js";
+const NoteCard = ({ note, setNotes }) => {
+  const {user}=useAuthContext()
 
-
-const NoteCard = ({ note, setNotes}) => {
-  const handleDelete= async (e,id)=>{
+  const handleDelete = async (e, id) => {
     e.preventDefault(); // Prevent navigating to note detail page
+    if(!user){
+      toast.error("You Must be loggged In")
+      navigate("/login")
+    }
     try {
-      await api.delete(`/notes/${id}`);
-      setNotes((prev)=> prev.filter(note => note._id !== id));
+      const token = JSON.parse(localStorage.getItem("user"))?.token;
+
+      await api.delete(`/notes/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      setNotes((prev) => prev.filter((n) => n._id !== id));
       toast.success("Note deleted successfully");
     } catch (error) {
       toast.error("Failed to delete note");
       console.log("Error deleting note:", error);
     }
-  }
+  };
+
   return (
     <Link
       to={`/note/${note._id}`}
@@ -37,8 +50,10 @@ const NoteCard = ({ note, setNotes}) => {
 
           <div className="flex items-center gap-1">
             <PenSquareIcon className="size-4 text-green-400" />
-            <button className="btn btn-ghost btn-xs text-error" 
-            onClick={(e)=> handleDelete(e,note._id)}>
+            <button
+              className="btn btn-ghost btn-xs text-error"
+              onClick={(e) => handleDelete(e, note._id)}
+            >
               <Trash2Icon className="size-4 text-red-500" />
             </button>
           </div>

@@ -2,7 +2,8 @@ import Note from"../models/Note.js";
 
 const getAllNotes= async (req,res)=>{
     try {
-        const notes=await Note.find().sort({createdAt:-1})
+        const user_id= req.user._id
+        const notes=await Note.find({user_id}).sort({createdAt:1})
         res.status(200).json(notes);
 
     } catch (error) {
@@ -30,8 +31,9 @@ const getSpecificNote= async(req,res)=>{
 
 const createNote= async(req,res)=>{
     try {
+        const user_id= req.user._id
         const {title,content}=req.body
-        const newNote= new Note({title,content});
+        const newNote= new Note({title,content,user_id});
         const savedNote=await newNote.save();
 
         res.status(201).json(savedNote);

@@ -1,13 +1,15 @@
 import { ArrowLeftIcon } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../lib/axios";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const CreatePage = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user } = useAuthContext();
 
   const navigate = useNavigate();
 
@@ -19,23 +21,37 @@ const CreatePage = () => {
       return;
     }
 
+    if (!user) {
+      toast.error("You must be logged in to create notes");
+      navigate("/login");
+      return;
+    }
+
     setLoading(true);
     try {
-      await api.post("/notes", {
-        title,
-        content,
-      });
+      await api.post(
+        "/notes",
+        { title, content },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
 
       toast.success("Note created successfully!");
       navigate("/");
-
     } catch (error) {
       console.log("Error creating note", error);
+
       if (error.response?.status === 429) {
         toast.error("Slow down! You're creating notes too fast", {
           duration: 4000,
           icon: "💀",
         });
+      } else if (error.response?.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        navigate("/login");
       } else {
         toast.error("Failed to create note");
       }
@@ -43,6 +59,7 @@ const CreatePage = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#1b1717] text-white">
@@ -93,9 +110,8 @@ const CreatePage = () => {
                 <div className="card-actions justify-end">
                   <button
                     type="submit"
-                    className={`btn btn-primary bg-green-500 border-none hover:bg-green-400 text-black px-8 ${
-                      loading ? "loading" : ""
-                    }`}
+                    className={`btn btn-primary bg-green-500 border-none hover:bg-green-400 text-black px-8 ${loading ? "loading" : ""
+                      }`}
                     disabled={loading}
                   >
                     {loading ? "Creating..." : "Create Note"}

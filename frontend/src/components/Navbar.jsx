@@ -1,7 +1,15 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { PlusIcon } from "lucide-react";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const Navbar = () => {
+  const { user, dispatch } = useAuthContext();
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    dispatch({ type: "LOGOUT" });
+  };
+
   return (
     <header className="bg-base-300 border-b border-base-content/10">
       <div className="mx-auto max-w-6xl p-4">
@@ -11,10 +19,36 @@ const Navbar = () => {
           </h1>
 
           <div className="flex items-center gap-4">
-            <Link to={"/create"} className="btn btn-primary">
-              <PlusIcon className="size-5" />
-              <span>New Note</span>
-            </Link>
+            {!user && (
+              <>
+                <Link to="/login" className="btn btn-primary">
+                  Login
+                </Link>
+
+                <Link to="/signup" className="btn btn-primary">
+                  Signup
+                </Link>
+              </>
+            )}
+
+            {user && (
+              <>
+                <Link
+                  to="/create"
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  <PlusIcon className="size-5" />
+                  <span>New Note</span>
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-outline btn-error"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
